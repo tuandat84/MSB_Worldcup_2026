@@ -31,9 +31,13 @@ export async function getUserFromRequest(req: NextRequest) {
 
   const db = await getDb()
   const user = await db.get(
-    "SELECT id, email, fullname, nickname, avatar, role FROM users WHERE id = ?",
+    `SELECT id, email, fullname, nickname, avatar, role,
+            COALESCE(is_locked, 0) as is_locked
+     FROM users WHERE id = ?`,
     [decoded.userId]
   )
 
-  return user || null
+  if (!user || user.is_locked === 1) return null
+
+  return user
 }

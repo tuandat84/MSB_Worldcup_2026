@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
     const db = await getDb()
 
-    // Tự động khóa trận đã bắt đầu & cập nhật kết quả (cooldown 5 phút)
+    // Tự động khóa trận đã bắt đầu & cập nhật kết quả (cooldown 2 giờ)
     try {
       await syncMatchResults(db)
     } catch (syncErr) {

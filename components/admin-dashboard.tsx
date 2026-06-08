@@ -1,7 +1,20 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Users, ListChecks, CheckCircle2, FileSpreadsheet, PlusCircle, Save, RefreshCw, AlertTriangle } from "lucide-react"
+import {
+  Users,
+  ListChecks,
+  CheckCircle2,
+  FileSpreadsheet,
+  PlusCircle,
+  Save,
+  RefreshCw,
+  AlertTriangle,
+  Lock,
+  Unlock,
+  Trash2,
+  X,
+} from "lucide-react"
 import { formatShortDate } from "@/lib/format-date"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -42,6 +55,17 @@ type PendingMatch = {
   kickoff: string
 }
 
+type AdminPlayer = {
+  id: number
+  email: string
+  fullname: string
+  nickname: string
+  avatar: string | null
+  createdAt: string
+  isLocked: boolean
+  totalPredictions: number
+}
+
 export function AdminDashboard() {
   const [matches, setMatches] = useState<AdminMatch[]>([])
   const [stats, setStats] = useState<Stats>({
@@ -64,6 +88,10 @@ export function AdminDashboard() {
   const [syncLoading, setSyncLoading] = useState(false)
   const [message, setMessage] = useState("")
   const [errorMsg, setErrorMsg] = useState("")
+  const [showPlayersPanel, setShowPlayersPanel] = useState(false)
+  const [players, setPlayers] = useState<AdminPlayer[]>([])
+  const [playersLoading, setPlayersLoading] = useState(false)
+  const [userActionLoading, setUserActionLoading] = useState<number | null>(null)
 
   const pendingIds = new Set(pendingManual.map((m) => m.id))
 
@@ -105,6 +133,85 @@ export function AdminDashboard() {
   useEffect(() => {
     fetchData()
   }, [])
+
+  async function fetchPlayers() {
+    try {
+      setPlayersLoading(true)
+      const res = await fetch("/api/admin/users")
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || "Không thể tải danh sách người chơi")
+      }
+      const data = await res.json()
+      setPlayers(data.players)
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "Không thể tải danh sách người chơi")
+    } finally {
+      setPlayersLoading(false)
+    }
+  }
+
+  async function openPlayersPanel() {
+    setShowPlayersPanel(true)
+    setErrorMsg("")
+    await fetchPlayers()
+  }
+
+  async function handleToggleLock(player: AdminPlayer) {
+    const nextLocked = !player.isLocked
+    const action = nextLocked ? "khóa" : "mở khóa"
+    if (!confirm(`${nextLocked ? "Khóa" : "Mở khóa"} tài khoản ${player.nickname}?`)) return
+
+    setUserActionLoading(player.id)
+    setErrorMsg("")
+    try {
+      const res = await fetch(`/api/admin/users/${player.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locked: nextLocked }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || `Không thể ${action} tài khoản`)
+      setPlayers((prev) =>
+        prev.map((p) => (p.id === player.id ? { ...p, isLocked: nextLocked } : p))
+      )
+      setMessage(data.message)
+      setTimeout(() => setMessage(""), 3000)
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : `Không thể ${action} tài khoản`)
+    } finally {
+      setUserActionLoading(null)
+    }
+  }
+
+  async function handleDeletePlayer(player: AdminPlayer) {
+    if (
+      !confirm(
+        `Xóa vĩnh viễn ${player.fullname} (${player.email})? Toàn bộ dự đoán của người này cũng bị xóa.`
+      )
+    ) {
+      return
+    }
+
+    setUserActionLoading(player.id)
+    setErrorMsg("")
+    try {
+      const res = await fetch(`/api/admin/users/${player.id}`, { method: "DELETE" })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Không thể xóa người chơi")
+      setPlayers((prev) => prev.filter((p) => p.id !== player.id))
+      setStats((prev) => ({
+        ...prev,
+        totalPlayers: Math.max(0, prev.totalPlayers - 1),
+      }))
+      setMessage(data.message)
+      setTimeout(() => setMessage(""), 3000)
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "Không thể xóa người chơi")
+    } finally {
+      setUserActionLoading(null)
+    }
+  }
 
   // Cập nhật giá trị nhập tỷ số trong state local
   function updateLocalScore(id: number, field: "scoreA" | "scoreB", value: string) {
@@ -259,22 +366,29 @@ export function AdminDashboard() {
 
   const statsCards = [
     {
+      key: "players",
       label: "Tổng số người chơi",
       value: stats.totalPlayers,
       icon: Users,
       accent: "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400",
+      clickable: true,
+      hint: "Nhấn để xem danh sách & quản lý",
     },
     {
+      key: "predictions",
       label: "Tổng số dự đoán",
       value: stats.totalPredictions,
       icon: ListChecks,
       accent: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400",
+      clickable: false,
     },
     {
+      key: "finished",
       label: "Trận đã kết thúc",
       value: stats.finishedMatches,
       icon: CheckCircle2,
       accent: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
+      clickable: false,
     },
   ]
 
@@ -286,7 +400,7 @@ export function AdminDashboard() {
             Quản trị World Cup 2026
           </h1>
           <p className="text-sm text-muted-foreground">
-            Hệ thống tự động cập nhật kết quả &amp; tính điểm sau mỗi trận (ESPN / API-Football)
+            Tự động đồng bộ kết quả mỗi 2 giờ (ESPN / API-Football) — hoặc bấm Đồng bộ ngay
           </p>
         </div>
         <div className="flex flex-wrap gap-2 self-start sm:self-auto">
@@ -332,7 +446,27 @@ export function AdminDashboard() {
       {/* Stats Cards */}
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {statsCards.map((stat) => (
-          <Card key={stat.label}>
+          <Card
+            key={stat.key}
+            className={
+              stat.clickable
+                ? "cursor-pointer transition-shadow hover:shadow-md ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                : undefined
+            }
+            role={stat.clickable ? "button" : undefined}
+            tabIndex={stat.clickable ? 0 : undefined}
+            onClick={stat.clickable ? () => openPlayersPanel() : undefined}
+            onKeyDown={
+              stat.clickable
+                ? (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault()
+                      openPlayersPanel()
+                    }
+                  }
+                : undefined
+            }
+          >
             <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.label}
@@ -345,10 +479,122 @@ export function AdminDashboard() {
               <p className="text-2xl font-bold tabular-nums text-card-foreground sm:text-3xl">
                 {stat.value}
               </p>
+              {stat.hint && (
+                <p className="mt-1 text-xs text-muted-foreground">{stat.hint}</p>
+              )}
             </CardContent>
           </Card>
         ))}
       </section>
+
+      {showPlayersPanel && (
+        <Card>
+          <CardHeader className="flex flex-row items-start justify-between gap-3">
+            <div>
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <Users className="size-5 text-primary" />
+                Danh sách người tham gia ({players.length})
+              </CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Khóa tài khoản để chặn đăng nhập. Xóa sẽ xóa luôn toàn bộ dự đoán.
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="shrink-0"
+              onClick={() => setShowPlayersPanel(false)}
+              aria-label="Đóng danh sách người chơi"
+            >
+              <X className="size-4" />
+            </Button>
+          </CardHeader>
+          <CardContent className="p-0 sm:p-6 sm:pt-0">
+            {playersLoading ? (
+              <div className="py-10 text-center text-sm text-muted-foreground">
+                Đang tải danh sách...
+              </div>
+            ) : players.length === 0 ? (
+              <div className="py-10 text-center text-sm text-muted-foreground">
+                Chưa có người chơi nào.
+              </div>
+            ) : (
+              <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-card z-10">
+                    <TableRow>
+                      <TableHead className="min-w-[140px]">Người chơi</TableHead>
+                      <TableHead className="min-w-[180px]">Email</TableHead>
+                      <TableHead className="min-w-[90px] text-center">Dự đoán</TableHead>
+                      <TableHead className="min-w-[100px]">Trạng thái</TableHead>
+                      <TableHead className="min-w-[140px] text-right">Thao tác</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {players.map((player) => (
+                      <TableRow key={player.id}>
+                        <TableCell>
+                          <div className="font-semibold text-sm">{player.fullname}</div>
+                          <div className="text-xs text-muted-foreground">@{player.nickname}</div>
+                        </TableCell>
+                        <TableCell className="text-sm">{player.email}</TableCell>
+                        <TableCell className="text-center tabular-nums">
+                          {player.totalPredictions}
+                        </TableCell>
+                        <TableCell>
+                          {player.isLocked ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700 dark:bg-red-500/15 dark:text-red-400">
+                              <Lock className="size-2.5" />
+                              Đã khóa
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
+                              Hoạt động
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1.5">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 px-2 text-xs"
+                              disabled={userActionLoading === player.id}
+                              onClick={() => handleToggleLock(player)}
+                            >
+                              {player.isLocked ? (
+                                <>
+                                  <Unlock className="size-3 mr-1" />
+                                  Mở khóa
+                                </>
+                              ) : (
+                                <>
+                                  <Lock className="size-3 mr-1" />
+                                  Khóa
+                                </>
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="h-8 px-2 text-xs"
+                              disabled={userActionLoading === player.id}
+                              onClick={() => handleDeletePlayer(player)}
+                            >
+                              <Trash2 className="size-3 mr-1" />
+                              Xóa
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Form thêm trận đấu mới */}

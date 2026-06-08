@@ -4,7 +4,7 @@ import { syncMatchResults } from "@/lib/match-sync"
 
 export const dynamic = "force-dynamic"
 
-/** Cron job: tự động cập nhật kết quả & tính điểm (gọi mỗi 15 phút) */
+/** Cron job: tự động cập nhật kết quả & tính điểm (gọi mỗi 2 giờ) */
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET
   if (secret) {

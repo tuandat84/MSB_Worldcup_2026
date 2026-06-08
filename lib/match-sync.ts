@@ -18,7 +18,7 @@ export type SyncReport = {
 }
 
 let lastFullSyncAt = 0
-const SYNC_COOLDOWN_MS = 5 * 60 * 1000
+const SYNC_COOLDOWN_MS = 2 * 60 * 60 * 1000
 const MATCH_DURATION_MS = 105 * 60 * 1000
 const MANUAL_THRESHOLD_MS = 3 * 60 * 60 * 1000
 

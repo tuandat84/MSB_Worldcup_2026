@@ -47,7 +47,7 @@ Vào service → **Variables**, thêm:
 2. **Generate Domain** → nhận URL dạng `xxx.up.railway.app`
 3. (Tùy chọn) Thêm custom domain + HTTPS tự động
 
-## Bước 6 — Cron cập nhật tỷ số (mỗi 15 phút)
+## Bước 6 — Cron cập nhật tỷ số (mỗi 2 giờ)
 
 Railway không chạy `vercel.json` cron. Dùng một trong hai cách:
 
@@ -60,14 +60,14 @@ GET https://<domain-cua-ban>/api/cron/sync-matches
 Header: Authorization: Bearer <CRON_SECRET>
 ```
 
-Lịch: `*/15 * * * *`
+Lịch: `0 */2 * * *`
 
 ### Cách B — cron-job.org (miễn phí)
 
 1. Đăng ký [cron-job.org](https://cron-job.org)
 2. Tạo job URL trên, method GET
 3. Header: `Authorization: Bearer <CRON_SECRET>`
-4. Mỗi 15 phút
+4. Mỗi 2 giờ
 
 ## Bước 7 — Kiểm tra sau deploy
 
@@ -77,7 +77,7 @@ Lịch: `*/15 * * * *`
    - Mật khẩu: `admin123` → **đổi ngay sau khi vào**
 3. Kiểm tra 72 trận trong lịch thi đấu
 4. Upload avatar thử
-5. Gọi thử cron (hoặc đợi user vào trang — sync mỗi 5 phút)
+5. Gọi thử cron (hoặc dùng nút **Đồng bộ ngay** trên trang quản trị)
 
 ## Migrate DB từ máy local (tùy chọn)
 

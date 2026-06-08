@@ -79,6 +79,7 @@ export async function initDb() {
   `)
 
   await migratePredictionsSchema(db)
+  await migrateUsersSchema(db)
 
   // 4. Tạo tài khoản admin mặc định nếu chưa tồn tại
   const adminEmail = "admin@example.com"
@@ -111,6 +112,19 @@ export async function initDb() {
   }
 
   await backfillMissedPenalties(db)
+}
+
+async function migrateUsersSchema(
+  db: Database<sqlite3.Database, sqlite3.Statement>
+) {
+  const columns = (await db.all("PRAGMA table_info(users)")) as Array<{
+    name: string
+  }>
+  const hasLocked = columns.some((c) => c.name === "is_locked")
+  if (!hasLocked) {
+    await db.run("ALTER TABLE users ADD COLUMN is_locked INTEGER DEFAULT 0")
+    console.log("Đã thêm cột is_locked vào bảng users.")
+  }
 }
 
 async function migratePredictionsSchema(

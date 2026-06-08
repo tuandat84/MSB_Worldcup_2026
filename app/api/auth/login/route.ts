@@ -18,7 +18,9 @@ export async function POST(req: NextRequest) {
 
     // Tìm user bằng email
     const user = await db.get(
-      "SELECT id, email, password, fullname, nickname, avatar, role FROM users WHERE email = ?",
+      `SELECT id, email, password, fullname, nickname, avatar, role,
+              COALESCE(is_locked, 0) as is_locked
+       FROM users WHERE email = ?`,
       [email]
     )
 
@@ -26,6 +28,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "Tài khoản hoặc mật khẩu không chính xác" },
         { status: 401 }
+      )
+    }
+
+    if (user.is_locked === 1) {
+      return NextResponse.json(
+        { error: "Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên." },
+        { status: 403 }
       )
     }
 
