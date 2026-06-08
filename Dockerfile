@@ -5,6 +5,9 @@ RUN apt-get update \
   && apt-get install -y python3 make g++ \
   && rm -rf /var/lib/apt/lists/*
 
+# sqlite3 prebuild cần GLIBC 2.38; bookworm-slim có 2.36 — build từ source
+ENV npm_config_build_from_source=true
+
 RUN corepack enable && corepack prepare pnpm@9 --activate
 
 WORKDIR /app
