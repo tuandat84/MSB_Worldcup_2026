@@ -1,9 +1,9 @@
 import sqlite3 from "sqlite3"
 import { open, Database } from "sqlite"
-import path from "path"
 import bcrypt from "bcryptjs"
 import { buildGroupStageSchedule } from "./schedule"
 import { backfillMissedPenalties } from "./match-scoring"
+import { getDbPath } from "./data-dir"
 
 let dbInstance: Database<sqlite3.Database, sqlite3.Statement> | null = null
 let isInitialized = false
@@ -13,7 +13,7 @@ export async function getDb(): Promise<Database<sqlite3.Database, sqlite3.Statem
     return dbInstance
   }
 
-  const dbPath = path.join(process.cwd(), "worldcup.db")
+  const dbPath = getDbPath()
   
   dbInstance = await open({
     filename: dbPath,

@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { getUserFromRequest } from "@/lib/auth"
 import { getDb } from "@/lib/db"
 import { MAX_AVATAR_UPLOAD_BYTES } from "@/lib/resize-image"
+import {
+  getAvatarPublicUrl,
+  getAvatarsDir,
+  resolveAvatarFilePath,
+} from "@/lib/data-dir"
 import fs from "fs"
 import path from "path"
 
@@ -57,24 +62,16 @@ export async function PUT(req: NextRequest) {
       }
 
       const fileExtension = mimeType === "jpeg" ? "jpg" : mimeType
-
-      // Tạo thư mục public/uploads/avatars nếu chưa có
-      const uploadDir = path.join(process.cwd(), "public", "uploads", "avatars")
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true })
-      }
-
+      const uploadDir = getAvatarsDir()
       const fileName = `avatar-${user.id}-${Date.now()}.${fileExtension}`
       const filePath = path.join(uploadDir, fileName)
 
-      // Ghi file ảnh ra đĩa
       fs.writeFileSync(filePath, buffer)
-      avatarUrl = `/uploads/avatars/${fileName}`
+      avatarUrl = getAvatarPublicUrl(fileName)
 
-      // Xóa ảnh cũ nếu có và khác mặc định
-      if (user.avatar && user.avatar.startsWith("/uploads/avatars/")) {
-        const oldFilePath = path.join(process.cwd(), "public", user.avatar)
-        if (fs.existsSync(oldFilePath)) {
+      if (user.avatar) {
+        const oldFilePath = resolveAvatarFilePath(user.avatar)
+        if (oldFilePath && fs.existsSync(oldFilePath)) {
           try {
             fs.unlinkSync(oldFilePath)
           } catch (err) {

@@ -53,7 +53,7 @@ const SCHEDULE = [
   ["Bảng G - Lượt 2", "New Zealand", "Egypt", et(2026, 6, 21, 21, 0)],
   ["Bảng G - Lượt 3", "Egypt", "Iran", et(2026, 6, 26, 23, 0)],
   ["Bảng G - Lượt 3", "New Zealand", "Belgium", et(2026, 6, 26, 23, 0)],
-  ["Bảng H - Lượt 1", "Spain", "Cape Verde", et(2026, 6, 15, 13, 0)],
+  ["Bảng H - Lượt 1", "Spain", "Cape Verde", et(2026, 6, 15, 12, 0)],
   ["Bảng H - Lượt 1", "Saudi Arabia", "Uruguay", et(2026, 6, 15, 18, 0)],
   ["Bảng H - Lượt 2", "Spain", "Saudi Arabia", et(2026, 6, 21, 12, 0)],
   ["Bảng H - Lượt 2", "Uruguay", "Cape Verde", et(2026, 6, 21, 18, 0)],

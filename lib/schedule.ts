@@ -104,7 +104,7 @@ export function buildGroupStageSchedule(): ScheduledMatch[] {
     { round: "Bảng G - Lượt 3", teamA: "New Zealand", teamB: "Belgium", kickoff: et(2026, 6, 26, 23, 0) },
 
     // ===== BẢNG H =====
-    { round: "Bảng H - Lượt 1", teamA: "Spain", teamB: "Cape Verde", kickoff: et(2026, 6, 15, 13, 0) },
+    { round: "Bảng H - Lượt 1", teamA: "Spain", teamB: "Cape Verde", kickoff: et(2026, 6, 15, 12, 0) },
     { round: "Bảng H - Lượt 1", teamA: "Saudi Arabia", teamB: "Uruguay", kickoff: et(2026, 6, 15, 18, 0) },
     { round: "Bảng H - Lượt 2", teamA: "Spain", teamB: "Saudi Arabia", kickoff: et(2026, 6, 21, 12, 0) },
     { round: "Bảng H - Lượt 2", teamA: "Uruguay", teamB: "Cape Verde", kickoff: et(2026, 6, 21, 18, 0) },

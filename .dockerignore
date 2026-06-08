@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.env
+.env*.local
+worldcup.db
+public/uploads
+scratch
+*.md
+!README.md
