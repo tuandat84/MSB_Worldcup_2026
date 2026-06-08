@@ -13,6 +13,7 @@ import {
   X,
   CalendarClock,
   Bell,
+  Wallet,
   ChevronRight,
   Settings,
   LogOut,
@@ -37,6 +38,7 @@ import { MatchDetailView } from "@/components/match-detail"
 import { TeamFlag } from "@/components/team-flag"
 import { getTeamViName } from "@/lib/team-data"
 import { formatShortDate } from "@/lib/format-date"
+import { formatVnd } from "@/lib/pool-fee"
 
 type NavItem = {
   key: string
@@ -44,11 +46,11 @@ type NavItem = {
   icon: React.ComponentType<{ className?: string }>
 }
 
-type TopPlayer = {
+type TopFeePlayer = {
   id: number
   rank: number
   name: string
-  points: number
+  totalFee: number
 }
 
 type UpcomingMatch = {
@@ -96,7 +98,7 @@ export function Dashboard({
   const [userDetailSource, setUserDetailSource] = useState<"leaderboard" | "dashboard">("leaderboard")
   const [matchDetailSource, setMatchDetailSource] = useState<"predict" | "dashboard">("predict")
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [topPlayers, setTopPlayers] = useState<TopPlayer[]>([])
+  const [topFeePlayers, setTopFeePlayers] = useState<TopFeePlayer[]>([])
   const [upcomingMatches, setUpcomingMatches] = useState<UpcomingMatch[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -118,17 +120,20 @@ export function Dashboard({
     async function fetchHomeData() {
       try {
         setLoading(true)
-        // 1. Fetch Top 3 players
-        const lbRes = await fetch("/api/users/leaderboard")
+        // 1. Top 3 người đóng tiền nhiều nhất
+        const lbRes = await fetch("/api/users/leaderboard?sort=fee")
         if (lbRes.ok) {
           const lbData = await lbRes.json()
-          const formattedPlayers = lbData.leaderboard.slice(0, 3).map((p: any, idx: number) => ({
-            id: p.id,
-            rank: idx + 1,
-            name: p.name,
-            points: p.totalPoints
-          }))
-          setTopPlayers(formattedPlayers)
+          const formattedPlayers = lbData.leaderboard
+            .filter((p: { totalFee: number }) => p.totalFee > 0)
+            .slice(0, 3)
+            .map((p: { id: number; name: string; totalFee: number }, idx: number) => ({
+              id: p.id,
+              rank: idx + 1,
+              name: p.name,
+              totalFee: p.totalFee,
+            }))
+          setTopFeePlayers(formattedPlayers)
         }
 
         // 2. Fetch matches (filter upcoming/open)
@@ -239,53 +244,53 @@ export function Dashboard({
     return (
       <>
         {nextMatch && !loading && (
-          <div className="mb-6 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-500/20 dark:bg-amber-500/10">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-amber-400 text-amber-950">
+          <div className="mb-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 sm:mb-6 sm:px-4 dark:border-amber-500/20 dark:bg-amber-500/10">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-amber-400 text-amber-950 sm:size-9">
               <Bell className="size-4" aria-hidden="true" />
             </span>
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-amber-900 dark:text-amber-300">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium leading-snug text-amber-900 dark:text-amber-300">
                 Trận {getTeamViName(nextMatch.teamA)} vs {getTeamViName(nextMatch.teamB)} sắp bắt đầu
               </p>
-              <p className="truncate text-xs text-amber-700 dark:text-amber-400/80">
-                {nextMatch.round} · Khởi tranh lúc {nextMatch.kickoff} · Hãy hoàn tất dự đoán của bạn
+              <p className="mt-0.5 text-xs leading-relaxed text-amber-700 dark:text-amber-400/80">
+                {nextMatch.round} · {nextMatch.kickoff} · Hãy hoàn tất dự đoán
               </p>
             </div>
           </div>
         )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Top 3 leaderboard */}
-        <section className="rounded-2xl border border-border bg-card shadow-sm">
-          <header className="flex items-center justify-between border-b border-border px-4 py-4">
+        {/* Top 3 người đóng tiền */}
+        <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          <header className="flex flex-col gap-2 border-b border-border px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-4">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-card-foreground">
-              <ListOrdered className="size-4 text-muted-foreground" aria-hidden="true" />
-              Top 3 bảng xếp hạng
+              <Wallet className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              Top 3 người đóng tiền
             </h2>
             <button
               type="button"
               onClick={() => setActiveNav("leaderboard")}
-              className="inline-flex items-center text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="inline-flex items-center self-start text-xs font-medium text-muted-foreground transition-colors hover:text-foreground sm:self-auto"
             >
-              Xem tất cả
+              Xem bảng xếp hạng
               <ChevronRight className="size-3.5" aria-hidden="true" />
             </button>
           </header>
           <ul className="divide-y divide-border">
             {loading ? (
               <p className="p-4 text-sm text-muted-foreground">Đang tải...</p>
-            ) : topPlayers.length === 0 ? (
-              <p className="p-4 text-sm text-muted-foreground">Chưa có dữ liệu điểm.</p>
+            ) : topFeePlayers.length === 0 ? (
+              <p className="p-4 text-sm text-muted-foreground">Chưa có ai phải đóng tiền.</p>
             ) : (
-              topPlayers.map((player) => {
+              topFeePlayers.map((player) => {
                 const { badge, icon } = rankBadge(player.rank)
                 return (
-                  <li key={player.rank} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/60">
+                  <li key={player.rank} className="flex items-center gap-2 px-3 py-3 transition-colors hover:bg-muted/60 sm:gap-3 sm:px-4">
                     <span className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${badge}`}>
                       {icon ?? player.rank}
                     </span>
                     <span
-                      className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-secondary-foreground"
+                      className="hidden size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-secondary-foreground sm:flex"
                       aria-hidden="true"
                     >
                       {getInitials(player.name)}
@@ -301,9 +306,8 @@ export function Dashboard({
                     >
                       {player.name}
                     </button>
-                    <span className="shrink-0 text-sm font-bold tabular-nums text-card-foreground">
-                      {player.points}
-                      <span className="ml-1 text-xs font-normal text-muted-foreground">đ</span>
+                    <span className="shrink-0 text-sm font-bold tabular-nums text-red-600 dark:text-red-400">
+                      {formatVnd(player.totalFee)}
                     </span>
                   </li>
                 )
@@ -313,16 +317,16 @@ export function Dashboard({
         </section>
 
         {/* Upcoming matches */}
-        <section className="rounded-2xl border border-border bg-card shadow-sm">
-          <header className="flex items-center justify-between border-b border-border px-4 py-4">
+        <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          <header className="flex flex-col gap-2 border-b border-border px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-4">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-card-foreground">
-              <CalendarClock className="size-4 text-muted-foreground" aria-hidden="true" />
-              Trận đấu mở dự đoán ({upcomingMatches.length})
+              <CalendarClock className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              Trận mở dự đoán ({upcomingMatches.length})
             </h2>
             <button
               type="button"
               onClick={() => setActiveNav("predict")}
-              className="inline-flex items-center text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="inline-flex items-center self-start text-xs font-medium text-muted-foreground transition-colors hover:text-foreground sm:self-auto"
             >
               Dự đoán ngay
               <ChevronRight className="size-3.5" aria-hidden="true" />
@@ -335,7 +339,7 @@ export function Dashboard({
               <p className="p-4 text-sm text-muted-foreground">Không có trận đấu nào đang mở dự đoán.</p>
             ) : (
               upcomingMatches.map((match) => (
-                <li key={match.id} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/60">
+                <li key={match.id} className="flex flex-col gap-2 px-3 py-3 transition-colors hover:bg-muted/60 sm:flex-row sm:items-center sm:gap-3 sm:px-4">
                   <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <TeamFlag team={match.teamA} size="sm" />
@@ -344,9 +348,9 @@ export function Dashboard({
                     </div>
                     <p className="text-xs text-muted-foreground">{match.round}</p>
                   </div>
-                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                  <div className="flex w-full items-center justify-between gap-2 border-t border-border pt-2 sm:w-auto sm:flex-col sm:items-end sm:border-0 sm:pt-0">
                     <span className="inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-1 text-xs font-semibold tabular-nums text-secondary-foreground">
-                      <CalendarClock className="size-3" aria-hidden="true" />
+                      <CalendarClock className="size-3 shrink-0" aria-hidden="true" />
                       {match.kickoff}
                     </span>
                     <button
@@ -371,26 +375,39 @@ export function Dashboard({
     )
   }
 
+  function handleNavClick(key: string) {
+    setSelectedUserId(null)
+    setSelectedMatchId(null)
+    setActiveNav(key)
+    setSidebarOpen(false)
+  }
+
+  const mobileNavItems = navItems.filter((item) => item.key !== "admin")
+
   return (
-    <div className="min-h-svh bg-background">
+    <div className="min-h-svh overflow-x-hidden bg-background">
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur">
-        <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
-          <div className="flex items-center gap-3">
+        <div className="flex h-14 min-w-0 items-center justify-between gap-2 px-3 sm:h-16 sm:gap-3 sm:px-6">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="inline-flex size-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-muted md:hidden"
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-muted md:hidden"
               aria-label="Mở menu"
             >
               <Menu className="size-5" aria-hidden="true" />
             </button>
-            <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveNav("dashboard")}>
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                <Trophy className="size-5" aria-hidden="true" />
+            <div
+              className="flex min-w-0 cursor-pointer items-center gap-2 sm:gap-2.5"
+              onClick={() => setActiveNav("dashboard")}
+            >
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground sm:size-9">
+                <Trophy className="size-4 sm:size-5" aria-hidden="true" />
               </div>
-              <span className="text-balance text-base font-bold tracking-tight text-foreground sm:text-lg">
-                MSB Data WorldCup 2026
+              <span className="truncate text-sm font-bold tracking-tight text-foreground sm:text-lg">
+                <span className="sm:hidden">MSB WC 2026</span>
+                <span className="hidden sm:inline">MSB Data WorldCup 2026</span>
               </span>
             </div>
           </div>
@@ -503,15 +520,15 @@ export function Dashboard({
         )}
 
         {/* Main content */}
-        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-5xl">
+        <main className="w-full min-w-0 flex-1 overflow-x-hidden px-3 py-4 pb-20 sm:px-6 sm:py-6 md:pb-6 lg:px-8">
+          <div className="mx-auto w-full max-w-5xl">
             {activeNav === "dashboard" && (
-              <div className="mb-6">
-                <h1 className="text-balance text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-                  Chào mừng trở lại, {user.nickname || user.fullname}!
+              <div className="mb-4 sm:mb-6">
+                <h1 className="text-balance text-lg font-bold tracking-tight text-foreground break-words sm:text-xl md:text-2xl">
+                  Chào mừng, {user.nickname || user.fullname}!
                 </h1>
-                <p className="text-sm text-muted-foreground">
-                  Quyền: {user.role === "admin" ? "Quản trị viên" : "Thành viên"} · Tổng quan hoạt động hôm nay
+                <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+                  {user.role === "admin" ? "Quản trị viên" : "Thành viên"} · Tổng quan hôm nay
                 </p>
               </div>
             )}
@@ -520,6 +537,36 @@ export function Dashboard({
           </div>
         </main>
       </div>
+
+      {/* Bottom nav — mobile */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 backdrop-blur md:hidden"
+        aria-label="Điều hướng chính"
+      >
+        <div className="mx-auto flex max-w-lg items-stretch justify-around px-1 pb-[env(safe-area-inset-bottom)]">
+          {mobileNavItems.map((item) => {
+            const Icon = item.icon
+            const active =
+              activeNav === item.key ||
+              (item.key === "leaderboard" && activeNav === "user-detail") ||
+              (item.key === "predict" && activeNav === "match-detail")
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => handleNavClick(item.key)}
+                className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2.5 text-[10px] font-medium transition-colors ${
+                  active ? "text-primary" : "text-muted-foreground"
+                }`}
+                aria-current={active ? "page" : undefined}
+              >
+                <Icon className="size-5 shrink-0" aria-hidden="true" />
+                <span className="max-w-full truncate">{item.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </nav>
     </div>
   )
 }

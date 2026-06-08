@@ -132,8 +132,8 @@ export function Leaderboard({ onUserClick }: { onUserClick?: (player: Player) =>
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <ArrowUpDown className="size-3.5 text-muted-foreground" />
+          <div className="flex flex-wrap items-center gap-1.5">
+            <ArrowUpDown className="size-3.5 shrink-0 text-muted-foreground" />
             <Button
               variant={sortBy === "points" ? "default" : "outline"}
               size="sm"

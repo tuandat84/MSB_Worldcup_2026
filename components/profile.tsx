@@ -231,7 +231,7 @@ export function Profile({
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {/* Cột trái: avatar + tên */}
         <Card className="md:col-span-1">
-          <CardContent className="flex flex-col items-center gap-4 p-6 text-center">
+          <CardContent className="flex flex-col items-center gap-4 p-4 text-center sm:p-6">
             <div className="relative group">
               {avatarPreview ? (
                 <img
@@ -306,13 +306,13 @@ export function Profile({
         {/* Cột phải: thông tin chi tiết */}
         <div className="space-y-6 md:col-span-2">
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
+            <CardContent className="p-4 sm:p-6">
+              <div className="mb-4 flex flex-col gap-3 border-b border-border pb-3 sm:flex-row sm:items-center sm:justify-between">
                 <h2 className="text-base font-semibold text-card-foreground">
                   Thông tin cá nhân
                 </h2>
                 {isEditing && (
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -335,17 +335,17 @@ export function Profile({
               </div>
               
               <div className="space-y-4">
-                <div className="grid grid-cols-3 items-center gap-4 border-b border-border pb-3">
+                <div className="grid grid-cols-1 gap-1 border-b border-border pb-3 sm:grid-cols-3 sm:items-center sm:gap-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <User className="size-4" aria-hidden="true" />
+                    <User className="size-4 shrink-0" aria-hidden="true" />
                     <span>Tên đầy đủ</span>
                   </div>
-                  <div className="col-span-2 text-sm font-semibold text-card-foreground">
+                  <div className="text-sm font-semibold break-words text-card-foreground sm:col-span-2">
                     {isEditing ? (
                       <Input
                         value={fullname}
                         onChange={(e) => setFullname(e.target.value)}
-                        className="h-9 w-full max-w-sm"
+                        className="h-9 w-full"
                       />
                     ) : (
                       user.fullname
@@ -353,17 +353,17 @@ export function Profile({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 items-center gap-4 border-b border-border pb-3">
+                <div className="grid grid-cols-1 gap-1 border-b border-border pb-3 sm:grid-cols-3 sm:items-center sm:gap-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <AtSign className="size-4" aria-hidden="true" />
+                    <AtSign className="size-4 shrink-0" aria-hidden="true" />
                     <span>Nickname</span>
                   </div>
-                  <div className="col-span-2 text-sm font-semibold text-card-foreground">
+                  <div className="text-sm font-semibold break-words text-card-foreground sm:col-span-2">
                     {isEditing ? (
                       <Input
                         value={nickname}
                         onChange={(e) => setNickname(e.target.value)}
-                        className="h-9 w-full max-w-sm"
+                        className="h-9 w-full"
                       />
                     ) : (
                       `@${user.nickname}`
@@ -371,22 +371,22 @@ export function Profile({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 items-center gap-4 border-b border-border pb-3">
+                <div className="grid grid-cols-1 gap-1 border-b border-border pb-3 sm:grid-cols-3 sm:items-center sm:gap-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="size-4" aria-hidden="true" />
+                    <Mail className="size-4 shrink-0" aria-hidden="true" />
                     <span>Email</span>
                   </div>
-                  <div className="col-span-2 text-sm font-semibold text-muted-foreground">
+                  <div className="text-sm font-semibold break-all text-muted-foreground sm:col-span-2">
                     {user.email}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 items-center gap-4">
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-3 sm:items-center sm:gap-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CalendarDays className="size-4" aria-hidden="true" />
+                    <CalendarDays className="size-4 shrink-0" aria-hidden="true" />
                     <span>Ngày tham gia</span>
                   </div>
-                  <div className="col-span-2 text-sm font-semibold text-card-foreground">
+                  <div className="text-sm font-semibold text-card-foreground sm:col-span-2">
                     {joinedDateStr}
                   </div>
                 </div>

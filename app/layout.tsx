@@ -9,6 +9,12 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 })
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+}
+
 export const metadata: Metadata = {
   title: 'MSB Data WorldCup 2026',
   description: 'MSB Data WorldCup 2026 - Dự đoán tỷ số World Cup 2026',
