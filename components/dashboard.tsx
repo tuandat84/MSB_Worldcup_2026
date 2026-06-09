@@ -17,7 +17,8 @@ import {
   ChevronRight,
   Settings,
   LogOut,
-  ShieldAlert
+  ShieldAlert,
+  ScrollText,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -35,6 +36,7 @@ import { Profile } from "@/components/profile"
 import { AdminDashboard } from "@/components/admin-dashboard"
 import { UserPredictions } from "@/components/user-predictions"
 import { MatchDetailView } from "@/components/match-detail"
+import { RulesPage } from "@/components/rules"
 import { TeamFlag } from "@/components/team-flag"
 import { getTeamViName } from "@/lib/team-data"
 import { formatShortDate } from "@/lib/format-date"
@@ -107,6 +109,7 @@ export function Dashboard({
     { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { key: "predict", label: "Dự đoán", icon: Target },
     { key: "leaderboard", label: "Bảng xếp hạng", icon: ListOrdered },
+    { key: "rules", label: "Thể lệ", icon: ScrollText },
     { key: "profile", label: "Profile", icon: User },
   ]
 
@@ -229,6 +232,8 @@ export function Dashboard({
             }}
           />
         )
+      case "rules":
+        return <RulesPage />
       case "profile":
         return <Profile user={user} onUserUpdate={onUserUpdate} />
       case "admin":
@@ -543,7 +548,7 @@ export function Dashboard({
         className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 backdrop-blur md:hidden"
         aria-label="Điều hướng chính"
       >
-        <div className="mx-auto flex max-w-lg items-stretch justify-around px-1 pb-[env(safe-area-inset-bottom)]">
+        <div className="mx-auto flex max-w-lg items-stretch justify-around gap-0.5 px-0.5 pb-[env(safe-area-inset-bottom)]">
           {mobileNavItems.map((item) => {
             const Icon = item.icon
             const active =
@@ -555,7 +560,7 @@ export function Dashboard({
                 key={item.key}
                 type="button"
                 onClick={() => handleNavClick(item.key)}
-                className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2.5 text-[10px] font-medium transition-colors ${
+                className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 px-0.5 py-2 text-[9px] font-medium transition-colors sm:text-[10px] ${
                   active ? "text-primary" : "text-muted-foreground"
                 }`}
                 aria-current={active ? "page" : undefined}

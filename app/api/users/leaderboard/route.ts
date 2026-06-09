@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getDb } from "@/lib/db"
 import { syncMatchResults } from "@/lib/match-sync"
 import { FEE_WRONG_BOTH, FEE_WRONG_ONE } from "@/lib/pool-fee"
+import { POINT_EXACT } from "@/lib/match-scoring"
 
 export async function GET(req: NextRequest) {
   try {
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
         u.nickname,
         u.avatar,
         COALESCE(SUM(p.points), 0) as totalPoints,
-        COALESCE(SUM(CASE WHEN p.points = 2 THEN 1 ELSE 0 END), 0) as correctPredictions,
+        COALESCE(SUM(CASE WHEN p.points = ${POINT_EXACT} THEN 1 ELSE 0 END), 0) as correctPredictions,
         COALESCE(SUM(CASE WHEN p.points IS NOT NULL THEN 1 ELSE 0 END), 0) as totalPredictions,
         COALESCE(SUM(
           CASE

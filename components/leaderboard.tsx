@@ -118,7 +118,10 @@ export function Leaderboard({ onUserClick }: { onUserClick?: (player: Player) =>
               Bảng xếp hạng dự đoán World Cup 2026
             </h2>
             <p className="text-sm text-muted-foreground">
-              Không dự đoán / sai cả hai: 10.000 ₫ · Sai một: 5.000 ₫ · Đúng hoàn toàn: miễn phí
+              Điểm: đúng tỷ số +3 · đúng tính chất (thắng/hòa/thua) +1 · sai 0 đ
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Phí quỹ: không dự đoán / sai cả hai: 10.000 ₫ · đúng tính chất: 5.000 ₫ · đúng tỷ số: miễn phí
             </p>
           </div>
         </div>

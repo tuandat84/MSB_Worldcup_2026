@@ -2,8 +2,9 @@ import sqlite3 from "sqlite3"
 import { open, Database } from "sqlite"
 import bcrypt from "bcryptjs"
 import { buildGroupStageSchedule } from "./schedule"
-import { backfillMissedPenalties } from "./match-scoring"
+import { backfillMissedPenalties, backfillPredictionPoints } from "./match-scoring"
 import { getDbPath } from "./data-dir"
+import { parseKickoff } from "./format-date"
 
 let dbInstance: Database<sqlite3.Database, sqlite3.Statement> | null = null
 let isInitialized = false
@@ -112,6 +113,7 @@ export async function initDb() {
   }
 
   await backfillMissedPenalties(db)
+  await backfillPredictionPoints(db)
 }
 
 async function migrateUsersSchema(
@@ -140,33 +142,63 @@ async function migratePredictionsSchema(
   }
 }
 
-/** Thay toàn bộ 72 trận vòng bảng theo lịch FIFA chính thức */
+function kickoffsEqual(a: string, b: string): boolean {
+  const ta = parseKickoff(a).getTime()
+  const tb = parseKickoff(b).getTime()
+  return !Number.isNaN(ta) && !Number.isNaN(tb) && ta === tb
+}
+
+/** Đồng bộ lịch 72 trận — chỉ xóa dự đoán khi cặp đấu thay đổi, không xóa vì khác format kickoff */
 async function replaceGroupStageSchedule(db: Database<sqlite3.Database, sqlite3.Statement>) {
   const schedule = buildGroupStageSchedule()
   const existing = await db.all("SELECT id, team_a, team_b, round, kickoff FROM matches")
 
-  // Kiểm tra trận mở màn Mexico vs Nam Phi (FIFA: 12/6 02:00 VN)
-  const anchor = schedule.find((s) => s.teamA === "Mexico" && s.teamB === "South Africa")
-  const currentAnchor = existing.find((r) => r.team_a === "Mexico" && r.team_b === "South Korea")
+  if (existing.length !== schedule.length) {
+    await rebuildGroupStageSchedule(db, schedule)
+    return
+  }
 
-  const needsFullReplace =
-    existing.length !== 72 ||
-    !anchor ||
-    (currentAnchor && currentAnchor.team_b !== "South Africa") ||
-    existing.some((row) => {
-      const fixture = schedule.find(
-        (s) => s.teamA === row.team_a && s.teamB === row.team_b && s.round === row.round
-      )
-      return !fixture || fixture.kickoff !== row.kickoff
-    })
+  let kickoffUpdates = 0
+  let structuralMismatch = false
 
-  if (!needsFullReplace) return
+  for (const row of existing) {
+    const fixture = schedule.find(
+      (s) => s.teamA === row.team_a && s.teamB === row.team_b && s.round === row.round
+    )
+    if (!fixture) {
+      structuralMismatch = true
+      break
+    }
+    if (!kickoffsEqual(fixture.kickoff, row.kickoff)) {
+      await db.run("UPDATE matches SET kickoff = ? WHERE id = ?", [
+        fixture.kickoff,
+        row.id,
+      ])
+      kickoffUpdates++
+    }
+  }
 
-  console.log("Đang cập nhật lịch thi đấu 72 trận theo FIFA (giờ VN)...")
+  if (structuralMismatch) {
+    await rebuildGroupStageSchedule(db, schedule)
+    return
+  }
+
+  if (kickoffUpdates > 0) {
+    console.log(
+      `Đã cập nhật giờ ${kickoffUpdates} trận (giữ nguyên dự đoán người chơi).`
+    )
+  }
+}
+
+/** Chỉ dùng khi số trận hoặc cặp đấu thay đổi — không chạy khi deploy code thường */
+async function rebuildGroupStageSchedule(
+  db: Database<sqlite3.Database, sqlite3.Statement>,
+  schedule: ReturnType<typeof buildGroupStageSchedule>
+) {
+  console.log("Đang tạo lại lịch 72 trận (cặp đấu thay đổi — dự đoán cũ sẽ bị xóa)...")
 
   await db.run("BEGIN TRANSACTION")
   try {
-    // Xóa dự đoán cũ (cặp đấu đã thay đổi)
     await db.run("DELETE FROM predictions")
     await db.run("DELETE FROM matches")
 
@@ -177,7 +209,7 @@ async function replaceGroupStageSchedule(db: Database<sqlite3.Database, sqlite3.
       )
     }
     await db.run("COMMIT")
-    console.log(`Đã cập nhật ${schedule.length} trận vòng bảng World Cup 2026.`)
+    console.log(`Đã tạo lại ${schedule.length} trận vòng bảng World Cup 2026.`)
   } catch (err) {
     await db.run("ROLLBACK")
     throw err

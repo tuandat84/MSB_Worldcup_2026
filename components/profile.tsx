@@ -202,7 +202,7 @@ export function Profile({
       accent: "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400",
     },
     {
-      label: "Đúng tỷ số (+2 đ)",
+      label: "Đúng tỷ số (+3 đ)",
       value: stats.exactScores,
       icon: CheckCircle2,
       accent: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",

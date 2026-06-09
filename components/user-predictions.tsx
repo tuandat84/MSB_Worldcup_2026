@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { TeamFlag } from "@/components/team-flag"
 import { formatKickoffDate } from "@/lib/format-date"
 import { formatVnd } from "@/lib/pool-fee"
+import { POINT_EXACT } from "@/lib/match-scoring"
 
 type UserInfo = {
   id: number
@@ -65,9 +66,9 @@ function pointsBadge(points: number | null, status: string, isMissed?: boolean) 
       className: "bg-muted text-muted-foreground",
     }
   }
-  if (points === 2) {
+  if (points === POINT_EXACT) {
     return {
-      label: "+2 đ",
+      label: `+${POINT_EXACT} đ`,
       className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
     }
   }
@@ -322,7 +323,7 @@ export function UserPredictions({
                   </div>
                 </div>
 
-                {isFinished && item.points === 2 && (
+                {isFinished && item.points === POINT_EXACT && (
                   <p className="mt-2 flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
                     <Trophy className="size-3.5" />
                     Trúng cả tỷ số và kết quả
