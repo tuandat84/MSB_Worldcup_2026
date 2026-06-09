@@ -13,7 +13,8 @@ import {
   Edit2,
   Camera,
   Check,
-  X
+  X,
+  KeyRound,
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -66,6 +67,12 @@ export function Profile({
   const [resizingAvatar, setResizingAvatar] = useState(false)
   const [errorMsg, setErrorMsg] = useState("")
   const [successMsg, setSuccessMsg] = useState("")
+  const [currentPassword, setCurrentPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [passwordLoading, setPasswordLoading] = useState(false)
+  const [passwordError, setPasswordError] = useState("")
+  const [passwordSuccess, setPasswordSuccess] = useState("")
   
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -104,6 +111,45 @@ export function Profile({
     
     fetchStats()
   }, [user.id])
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault()
+    setPasswordError("")
+    setPasswordSuccess("")
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordError("Vui lòng điền đầy đủ các trường mật khẩu")
+      return
+    }
+    if (newPassword.length < 6) {
+      setPasswordError("Mật khẩu mới phải có ít nhất 6 ký tự")
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Mật khẩu mới và xác nhận không khớp")
+      return
+    }
+
+    setPasswordLoading(true)
+    try {
+      const res = await fetch("/api/users/password", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Không thể đổi mật khẩu")
+      setPasswordSuccess(data.message || "Đổi mật khẩu thành công!")
+      setCurrentPassword("")
+      setNewPassword("")
+      setConfirmPassword("")
+      setTimeout(() => setPasswordSuccess(""), 4000)
+    } catch (err: unknown) {
+      setPasswordError(err instanceof Error ? err.message : "Không thể đổi mật khẩu")
+    } finally {
+      setPasswordLoading(false)
+    }
+  }
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -391,6 +437,63 @@ export function Profile({
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4 sm:p-6">
+              <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-card-foreground">
+                <KeyRound className="size-4 text-primary" />
+                Đổi mật khẩu
+              </h2>
+              {passwordSuccess && (
+                <div className="mb-3 rounded-lg bg-emerald-100 p-3 text-sm font-medium text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
+                  {passwordSuccess}
+                </div>
+              )}
+              {passwordError && (
+                <div className="mb-3 rounded-lg bg-red-100 p-3 text-sm font-medium text-red-700 dark:bg-red-500/15 dark:text-red-400">
+                  {passwordError}
+                </div>
+              )}
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="currentPassword">Mật khẩu hiện tại</Label>
+                  <Input
+                    id="currentPassword"
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    autoComplete="current-password"
+                    disabled={passwordLoading}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="newPassword">Mật khẩu mới</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    autoComplete="new-password"
+                    disabled={passwordLoading}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    autoComplete="new-password"
+                    disabled={passwordLoading}
+                  />
+                </div>
+                <Button type="submit" size="sm" disabled={passwordLoading}>
+                  {passwordLoading ? "Đang lưu..." : "Cập nhật mật khẩu"}
+                </Button>
+              </form>
             </CardContent>
           </Card>
 

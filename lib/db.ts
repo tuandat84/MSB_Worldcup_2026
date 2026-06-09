@@ -127,6 +127,11 @@ async function migrateUsersSchema(
     await db.run("ALTER TABLE users ADD COLUMN is_locked INTEGER DEFAULT 0")
     console.log("Đã thêm cột is_locked vào bảng users.")
   }
+  const hasHidden = columns.some((c) => c.name === "is_hidden")
+  if (!hasHidden) {
+    await db.run("ALTER TABLE users ADD COLUMN is_hidden INTEGER DEFAULT 0")
+    console.log("Đã thêm cột is_hidden vào bảng users.")
+  }
 }
 
 async function migratePredictionsSchema(

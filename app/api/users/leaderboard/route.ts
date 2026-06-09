@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
         ), 0) as totalFee
       FROM users u
       LEFT JOIN predictions p ON u.id = p.user_id
-      WHERE u.role != 'admin'
+      WHERE u.role != 'admin' AND COALESCE(u.is_hidden, 0) = 0
       GROUP BY u.id
       ORDER BY ${orderBy}
     `)
@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
       ), 0) as poolTotal
       FROM predictions p
       JOIN users u ON p.user_id = u.id
-      WHERE u.role != 'admin' AND p.points IS NOT NULL
+      WHERE u.role != 'admin' AND COALESCE(u.is_hidden, 0) = 0 AND p.points IS NOT NULL
     `)
 
     return NextResponse.json({

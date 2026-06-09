@@ -31,10 +31,12 @@ export async function PATCH(
       return NextResponse.json({ error: "ID không hợp lệ" }, { status: 400 })
     }
 
-    const { locked } = await req.json()
-    if (typeof locked !== "boolean") {
+    const body = await req.json()
+    const { locked, hidden } = body
+
+    if (typeof locked !== "boolean" && typeof hidden !== "boolean") {
       return NextResponse.json(
-        { error: "Thiếu trường locked (true/false)" },
+        { error: "Cần trường locked hoặc hidden (true/false)" },
         { status: 400 }
       )
     }
@@ -54,20 +56,42 @@ export async function PATCH(
 
     if (target.role === "admin") {
       return NextResponse.json(
-        { error: "Không thể khóa tài khoản quản trị" },
+        { error: "Không thể thay đổi tài khoản quản trị" },
         { status: 400 }
       )
     }
 
-    await db.run("UPDATE users SET is_locked = ? WHERE id = ?", [
-      locked ? 1 : 0,
-      userId,
-    ])
+    const updates: string[] = []
+    const values: (number | string)[] = []
+    const response: { isLocked?: boolean; isHidden?: boolean } = {}
 
-    return NextResponse.json({
-      message: locked ? "Đã khóa tài khoản" : "Đã mở khóa tài khoản",
-      isLocked: locked,
-    })
+    if (typeof locked === "boolean") {
+      updates.push("is_locked = ?")
+      values.push(locked ? 1 : 0)
+      response.isLocked = locked
+    }
+    if (typeof hidden === "boolean") {
+      updates.push("is_hidden = ?")
+      values.push(hidden ? 1 : 0)
+      response.isHidden = hidden
+    }
+
+    values.push(userId)
+    await db.run(
+      `UPDATE users SET ${updates.join(", ")} WHERE id = ?`,
+      values
+    )
+
+    let message = "Đã cập nhật tài khoản"
+    if (typeof locked === "boolean" && typeof hidden !== "boolean") {
+      message = locked ? "Đã khóa tài khoản" : "Đã mở khóa tài khoản"
+    } else if (typeof hidden === "boolean" && typeof locked !== "boolean") {
+      message = hidden
+        ? "Đã ẩn khỏi bảng xếp hạng"
+        : "Đã hiển thị trên bảng xếp hạng"
+    }
+
+    return NextResponse.json({ message, ...response })
   } catch (error: unknown) {
     console.error("Admin lock user error:", error)
     return NextResponse.json(

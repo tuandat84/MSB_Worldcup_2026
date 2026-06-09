@@ -14,6 +14,9 @@ import {
   Unlock,
   Trash2,
   X,
+  Eye,
+  EyeOff,
+  KeyRound,
 } from "lucide-react"
 import { formatShortDate } from "@/lib/format-date"
 import { Button } from "@/components/ui/button"
@@ -63,6 +66,7 @@ type AdminPlayer = {
   avatar: string | null
   createdAt: string
   isLocked: boolean
+  isHidden: boolean
   totalPredictions: number
 }
 
@@ -179,6 +183,64 @@ export function AdminDashboard() {
       setTimeout(() => setMessage(""), 3000)
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : `Không thể ${action} tài khoản`)
+    } finally {
+      setUserActionLoading(null)
+    }
+  }
+
+  async function handleToggleHidden(player: AdminPlayer) {
+    const nextHidden = !player.isHidden
+    const action = nextHidden ? "ẩn khỏi bảng xếp hạng" : "hiển thị trên bảng xếp hạng"
+    if (!confirm(`${nextHidden ? "Ẩn" : "Hiển thị"} ${player.nickname} ${action}?`)) {
+      return
+    }
+
+    setUserActionLoading(player.id)
+    setErrorMsg("")
+    try {
+      const res = await fetch(`/api/admin/users/${player.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hidden: nextHidden }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || `Không thể ${action}`)
+      setPlayers((prev) =>
+        prev.map((p) => (p.id === player.id ? { ...p, isHidden: nextHidden } : p))
+      )
+      setMessage(data.message)
+      setTimeout(() => setMessage(""), 3000)
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : `Không thể ${action}`)
+    } finally {
+      setUserActionLoading(null)
+    }
+  }
+
+  async function handleResetPassword(player: AdminPlayer) {
+    const newPassword = prompt(
+      `Nhập mật khẩu mới cho ${player.fullname} (${player.email}):`
+    )
+    if (!newPassword) return
+    if (newPassword.length < 6) {
+      alert("Mật khẩu mới phải có ít nhất 6 ký tự")
+      return
+    }
+
+    setUserActionLoading(player.id)
+    setErrorMsg("")
+    try {
+      const res = await fetch(`/api/admin/users/${player.id}/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newPassword }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Không thể reset mật khẩu")
+      setMessage(data.message)
+      setTimeout(() => setMessage(""), 3000)
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "Không thể reset mật khẩu")
     } finally {
       setUserActionLoading(null)
     }
@@ -496,7 +558,7 @@ export function AdminDashboard() {
                 Danh sách người tham gia ({players.length})
               </CardTitle>
               <p className="mt-1 text-sm text-muted-foreground">
-                Khóa tài khoản để chặn đăng nhập. Xóa sẽ xóa luôn toàn bộ dự đoán.
+                Khóa: chặn đăng nhập · Ẩn: không hiện trên BXH · Reset MK: đặt mật khẩu mới cho user.
               </p>
             </div>
             <Button
@@ -527,7 +589,7 @@ export function AdminDashboard() {
                       <TableHead className="min-w-[180px]">Email</TableHead>
                       <TableHead className="min-w-[90px] text-center">Dự đoán</TableHead>
                       <TableHead className="min-w-[100px]">Trạng thái</TableHead>
-                      <TableHead className="min-w-[140px] text-right">Thao tác</TableHead>
+                      <TableHead className="min-w-[220px] text-right">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -542,19 +604,27 @@ export function AdminDashboard() {
                           {player.totalPredictions}
                         </TableCell>
                         <TableCell>
-                          {player.isLocked ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700 dark:bg-red-500/15 dark:text-red-400">
-                              <Lock className="size-2.5" />
-                              Đã khóa
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
-                              Hoạt động
-                            </span>
-                          )}
+                          <div className="flex flex-col gap-1">
+                            {player.isLocked ? (
+                              <span className="inline-flex w-fit items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700 dark:bg-red-500/15 dark:text-red-400">
+                                <Lock className="size-2.5" />
+                                Đã khóa
+                              </span>
+                            ) : (
+                              <span className="inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
+                                Hoạt động
+                              </span>
+                            )}
+                            {player.isHidden && (
+                              <span className="inline-flex w-fit items-center gap-1 rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:bg-slate-500/20 dark:text-slate-300">
+                                <EyeOff className="size-2.5" />
+                                Ẩn BXH
+                              </span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-1.5">
+                          <div className="flex flex-wrap justify-end gap-1.5">
                             <Button
                               size="sm"
                               variant="outline"
@@ -573,6 +643,35 @@ export function AdminDashboard() {
                                   Khóa
                                 </>
                               )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 px-2 text-xs"
+                              disabled={userActionLoading === player.id}
+                              onClick={() => handleToggleHidden(player)}
+                            >
+                              {player.isHidden ? (
+                                <>
+                                  <Eye className="size-3 mr-1" />
+                                  Hiện
+                                </>
+                              ) : (
+                                <>
+                                  <EyeOff className="size-3 mr-1" />
+                                  Ẩn
+                                </>
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 px-2 text-xs"
+                              disabled={userActionLoading === player.id}
+                              onClick={() => handleResetPassword(player)}
+                            >
+                              <KeyRound className="size-3 mr-1" />
+                              Reset MK
                             </Button>
                             <Button
                               size="sm"

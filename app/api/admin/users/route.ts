@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
         u.avatar,
         u.created_at as createdAt,
         COALESCE(u.is_locked, 0) as isLocked,
+        COALESCE(u.is_hidden, 0) as isHidden,
         COUNT(p.match_id) as totalPredictions
       FROM users u
       LEFT JOIN predictions p ON p.user_id = u.id
@@ -31,10 +32,13 @@ export async function GET(req: NextRequest) {
     `)
 
     return NextResponse.json({
-      players: players.map((p: { isLocked: number }) => ({
-        ...p,
-        isLocked: p.isLocked === 1,
-      })),
+      players: players.map(
+        (p: { isLocked: number; isHidden: number }) => ({
+          ...p,
+          isLocked: p.isLocked === 1,
+          isHidden: p.isHidden === 1,
+        })
+      ),
     })
   } catch (error: unknown) {
     console.error("Admin list users error:", error)
