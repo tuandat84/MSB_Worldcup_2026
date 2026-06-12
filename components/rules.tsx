@@ -4,19 +4,19 @@ import {
   ScrollText,
   Target,
   Trophy,
-  Wallet,
-  Gift,
+  // Wallet,
+  // Gift,
   Clock,
   Ban,
   CheckCircle2,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { POINT_EXACT, POINT_OUTCOME } from "@/lib/match-scoring"
-import {
-  FEE_WRONG_BOTH,
-  FEE_WRONG_ONE,
-  formatVnd,
-} from "@/lib/pool-fee"
+// import {
+//   FEE_WRONG_BOTH,
+//   FEE_WRONG_ONE,
+//   formatVnd,
+// } from "@/lib/pool-fee"
 
 function RuleRow({
   title,
@@ -54,7 +54,7 @@ export function RulesPage() {
             Thể lệ MSB Data World Cup 2026
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Luật chơi, cách tính điểm, quy định đóng quỹ và giải thưởng
+            Luật chơi và cách tính điểm
           </p>
         </div>
       </header>
@@ -82,7 +82,7 @@ export function RulesPage() {
           />
           <RuleRow
             title="Không dự đoán"
-            detail="Nếu không gửi dự đoán trước giờ đá, được tính 0 điểm cho trận đó và phải đóng phí quỹ theo bảng bên dưới."
+            detail="Nếu không gửi dự đoán trước giờ đá, được tính 0 điểm cho trận đó."
             accent="bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400"
           />
         </CardContent>
@@ -118,6 +118,7 @@ export function RulesPage() {
         </CardContent>
       </Card>
 
+      {/*
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -174,6 +175,7 @@ export function RulesPage() {
           </div>
         </CardContent>
       </Card>
+      */}
 
       <Card>
         <CardHeader className="pb-3">

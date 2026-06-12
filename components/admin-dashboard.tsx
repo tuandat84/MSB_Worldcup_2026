@@ -392,7 +392,7 @@ export function AdminDashboard() {
         "Biệt danh",
         "Email",
         "Tổng điểm",
-        "Phải đóng (VND)",
+        // "Phải đóng (VND)",
         "Dự đoán đúng tỷ số",
         "Tổng số dự đoán",
       ]
@@ -402,7 +402,7 @@ export function AdminDashboard() {
         p.nickname,
         p.email || "",
         p.totalPoints,
-        p.totalFee ?? 0,
+        // p.totalFee ?? 0,
         p.correctPredictions,
         p.totalPredictions,
       ])

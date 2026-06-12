@@ -13,7 +13,6 @@ import {
   X,
   CalendarClock,
   Bell,
-  Wallet,
   ChevronRight,
   Settings,
   LogOut,
@@ -40,7 +39,7 @@ import { RulesPage } from "@/components/rules"
 import { TeamFlag } from "@/components/team-flag"
 import { getTeamViName } from "@/lib/team-data"
 import { formatShortDate } from "@/lib/format-date"
-import { formatVnd } from "@/lib/pool-fee"
+// import { formatVnd } from "@/lib/pool-fee"
 
 type NavItem = {
   key: string
@@ -48,11 +47,11 @@ type NavItem = {
   icon: React.ComponentType<{ className?: string }>
 }
 
-type TopFeePlayer = {
+type TopPlayer = {
   id: number
   rank: number
   name: string
-  totalFee: number
+  totalPoints: number
 }
 
 type UpcomingMatch = {
@@ -100,7 +99,7 @@ export function Dashboard({
   const [userDetailSource, setUserDetailSource] = useState<"leaderboard" | "dashboard">("leaderboard")
   const [matchDetailSource, setMatchDetailSource] = useState<"predict" | "dashboard">("predict")
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [topFeePlayers, setTopFeePlayers] = useState<TopFeePlayer[]>([])
+  const [topPlayers, setTopPlayers] = useState<TopPlayer[]>([])
   const [upcomingMatches, setUpcomingMatches] = useState<UpcomingMatch[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -123,20 +122,19 @@ export function Dashboard({
     async function fetchHomeData() {
       try {
         setLoading(true)
-        // 1. Top 3 người đóng tiền nhiều nhất
-        const lbRes = await fetch("/api/users/leaderboard?sort=fee")
+        // Top 3 điểm cao nhất
+        const lbRes = await fetch("/api/users/leaderboard")
         if (lbRes.ok) {
           const lbData = await lbRes.json()
           const formattedPlayers = lbData.leaderboard
-            .filter((p: { totalFee: number }) => p.totalFee > 0)
             .slice(0, 3)
-            .map((p: { id: number; name: string; totalFee: number }, idx: number) => ({
+            .map((p: { id: number; name: string; totalPoints: number }, idx: number) => ({
               id: p.id,
               rank: idx + 1,
               name: p.name,
-              totalFee: p.totalFee,
+              totalPoints: p.totalPoints,
             }))
-          setTopFeePlayers(formattedPlayers)
+          setTopPlayers(formattedPlayers)
         }
 
         // 2. Fetch matches (filter upcoming/open)
@@ -265,12 +263,12 @@ export function Dashboard({
         )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Top 3 người đóng tiền */}
+        {/* Top 3 điểm cao nhất */}
         <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
           <header className="flex flex-col gap-2 border-b border-border px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-4">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-card-foreground">
-              <Wallet className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-              Top 3 người đóng tiền
+              <Trophy className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              Top 3 bảng xếp hạng
             </h2>
             <button
               type="button"
@@ -284,10 +282,10 @@ export function Dashboard({
           <ul className="divide-y divide-border">
             {loading ? (
               <p className="p-4 text-sm text-muted-foreground">Đang tải...</p>
-            ) : topFeePlayers.length === 0 ? (
-              <p className="p-4 text-sm text-muted-foreground">Chưa có ai phải đóng tiền.</p>
+            ) : topPlayers.length === 0 ? (
+              <p className="p-4 text-sm text-muted-foreground">Chưa có dữ liệu xếp hạng.</p>
             ) : (
-              topFeePlayers.map((player) => {
+              topPlayers.map((player) => {
                 const { badge, icon } = rankBadge(player.rank)
                 return (
                   <li key={player.rank} className="flex items-center gap-2 px-3 py-3 transition-colors hover:bg-muted/60 sm:gap-3 sm:px-4">
@@ -311,8 +309,8 @@ export function Dashboard({
                     >
                       {player.name}
                     </button>
-                    <span className="shrink-0 text-sm font-bold tabular-nums text-red-600 dark:text-red-400">
-                      {formatVnd(player.totalFee)}
+                    <span className="shrink-0 text-sm font-bold tabular-nums text-amber-700 dark:text-amber-400">
+                      {player.totalPoints} điểm
                     </span>
                   </li>
                 )

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getUserFromRequest } from "@/lib/auth"
 import { getDb } from "@/lib/db"
-import { calculatePoolFee, FEE_WRONG_BOTH, FEE_WRONG_ONE } from "@/lib/pool-fee"
+// import { calculatePoolFee, FEE_WRONG_BOTH, FEE_WRONG_ONE } from "@/lib/pool-fee"
 import { POINT_EXACT } from "@/lib/match-scoring"
 
 export async function GET(
@@ -39,18 +39,20 @@ export async function GET(
         COUNT(*) as totalPredictions,
         COALESCE(SUM(CASE WHEN points = ${POINT_EXACT} THEN 1 ELSE 0 END), 0) as exactScores,
         COALESCE(SUM(CASE WHEN points IS NOT NULL THEN 1 ELSE 0 END), 0) as scoredMatches,
-        COALESCE(SUM(CASE WHEN is_missed = 1 THEN 1 ELSE 0 END), 0) as missedMatches,
-        COALESCE(SUM(
-          CASE
-            WHEN is_missed = 1 OR points = 0 THEN ${FEE_WRONG_BOTH}
-            WHEN points = 1 THEN ${FEE_WRONG_ONE}
-            ELSE 0
-          END
-        ), 0) as totalFee
+        COALESCE(SUM(CASE WHEN is_missed = 1 THEN 1 ELSE 0 END), 0) as missedMatches
       FROM predictions
       WHERE user_id = ?`,
       [userId]
     )
+    /*
+    totalFee: COALESCE(SUM(
+      CASE
+        WHEN is_missed = 1 OR points = 0 THEN ${FEE_WRONG_BOTH}
+        WHEN points = 1 THEN ${FEE_WRONG_ONE}
+        ELSE 0
+      END
+    ), 0)
+    */
 
     const predictions = await db.all(
       `SELECT
@@ -73,11 +75,11 @@ export async function GET(
       [userId]
     )
 
-    const predictionsWithFee = predictions.map(
-      (p: { points: number | null; isMissed: number }) => ({
+    const predictionsNormalized = predictions.map(
+      (p: { isMissed: number }) => ({
         ...p,
         isMissed: p.isMissed === 1,
-        fee: calculatePoolFee(p.points, p.isMissed === 1),
+        // fee: calculatePoolFee(p.points, p.isMissed === 1),
       })
     )
 
@@ -92,9 +94,9 @@ export async function GET(
         exactScores: stats?.exactScores ?? 0,
         scoredMatches: stats?.scoredMatches ?? 0,
         missedMatches: stats?.missedMatches ?? 0,
-        totalFee: stats?.totalFee ?? 0,
+        // totalFee: stats?.totalFee ?? 0,
       },
-      predictions: predictionsWithFee,
+      predictions: predictionsNormalized,
     })
   } catch (error: any) {
     console.error("User Predictions Error:", error)

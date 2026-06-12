@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { Trophy, Medal, Award, Target, Wallet, ArrowUpDown } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { formatVnd } from "@/lib/pool-fee"
+import { Trophy, Medal, Award, Target } from "lucide-react"
+// import { Wallet, ArrowUpDown } from "lucide-react"
+// import { Button } from "@/components/ui/button"
+// import { formatVnd } from "@/lib/pool-fee"
 
 type Player = {
   id: number
@@ -13,10 +14,10 @@ type Player = {
   totalPoints: number
   correctPredictions: number
   totalPredictions: number
-  totalFee: number
+  // totalFee: number
 }
 
-type SortKey = "points" | "fee"
+// type SortKey = "points" | "fee"
 
 function getInitials(name: string) {
   if (!name) return "WC"
@@ -60,31 +61,23 @@ function rankStyles(rank: number) {
   }
 }
 
-function sortPlayers(players: Player[], sortBy: SortKey): Player[] {
+function sortPlayers(players: Player[]): Player[] {
   const sorted = [...players]
-  if (sortBy === "fee") {
-    sorted.sort((a, b) => {
-      if (b.totalFee !== a.totalFee) return b.totalFee - a.totalFee
-      if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints
-      return a.name.localeCompare(b.name, "vi")
-    })
-  } else {
-    sorted.sort((a, b) => {
-      if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints
-      if (b.correctPredictions !== a.correctPredictions) {
-        return b.correctPredictions - a.correctPredictions
-      }
-      return a.name.localeCompare(b.name, "vi")
-    })
-  }
+  sorted.sort((a, b) => {
+    if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints
+    if (b.correctPredictions !== a.correctPredictions) {
+      return b.correctPredictions - a.correctPredictions
+    }
+    return a.name.localeCompare(b.name, "vi")
+  })
   return sorted
 }
 
 export function Leaderboard({ onUserClick }: { onUserClick?: (player: Player) => void }) {
   const [players, setPlayers] = useState<Player[]>([])
-  const [poolTotal, setPoolTotal] = useState(0)
+  // const [poolTotal, setPoolTotal] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [sortBy, setSortBy] = useState<SortKey>("points")
+  // const [sortBy, setSortBy] = useState<SortKey>("points")
 
   useEffect(() => {
     async function fetchLeaderboard() {
@@ -93,7 +86,7 @@ export function Leaderboard({ onUserClick }: { onUserClick?: (player: Player) =>
         if (res.ok) {
           const data = await res.json()
           setPlayers(data.leaderboard)
-          setPoolTotal(data.poolTotal ?? 0)
+          // setPoolTotal(data.poolTotal ?? 0)
         }
       } catch (err) {
         console.error("Lỗi lấy bảng xếp hạng:", err)
@@ -104,7 +97,7 @@ export function Leaderboard({ onUserClick }: { onUserClick?: (player: Player) =>
     fetchLeaderboard()
   }, [])
 
-  const sortedPlayers = useMemo(() => sortPlayers(players, sortBy), [players, sortBy])
+  const sortedPlayers = useMemo(() => sortPlayers(players), [players])
 
   return (
     <section className="w-full max-w-3xl rounded-2xl border border-border bg-card shadow-sm">
@@ -120,12 +113,15 @@ export function Leaderboard({ onUserClick }: { onUserClick?: (player: Player) =>
             <p className="text-sm text-muted-foreground">
               Điểm: đúng tỷ số +3 · đúng tính chất (thắng/hòa/thua) +1 · sai 0 đ
             </p>
+            {/*
             <p className="text-sm text-muted-foreground">
               Phí quỹ: không dự đoán / sai cả hai: 10.000 ₫ · đúng tính chất: 5.000 ₫ · đúng tỷ số: miễn phí
             </p>
+            */}
           </div>
         </div>
 
+        {/*
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 dark:bg-emerald-500/10">
             <Wallet className="size-4 text-emerald-600 dark:text-emerald-400" />
@@ -137,24 +133,15 @@ export function Leaderboard({ onUserClick }: { onUserClick?: (player: Player) =>
 
           <div className="flex flex-wrap items-center gap-1.5">
             <ArrowUpDown className="size-3.5 shrink-0 text-muted-foreground" />
-            <Button
-              variant={sortBy === "points" ? "default" : "outline"}
-              size="sm"
-              className="h-8 text-xs cursor-pointer"
-              onClick={() => setSortBy("points")}
-            >
+            <Button variant={sortBy === "points" ? "default" : "outline"} size="sm" ...>
               Theo điểm
             </Button>
-            <Button
-              variant={sortBy === "fee" ? "default" : "outline"}
-              size="sm"
-              className="h-8 text-xs cursor-pointer"
-              onClick={() => setSortBy("fee")}
-            >
+            <Button variant={sortBy === "fee" ? "default" : "outline"} size="sm" ...>
               Theo tiền nộp
             </Button>
           </div>
         </div>
+        */}
       </header>
 
       {loading ? (
@@ -179,9 +166,11 @@ export function Leaderboard({ onUserClick }: { onUserClick?: (player: Player) =>
                 <th scope="col" className="px-3 py-3 text-right sm:px-4">
                   Điểm
                 </th>
+                {/*
                 <th scope="col" className="px-3 py-3 text-right sm:px-4">
                   Phải đóng
                 </th>
+                */}
                 <th scope="col" className="hidden px-4 py-3 text-right md:table-cell">
                   Đúng tỷ số
                 </th>
@@ -247,17 +236,13 @@ export function Leaderboard({ onUserClick }: { onUserClick?: (player: Player) =>
                       </span>
                     </td>
 
+                    {/*
                     <td className="px-3 py-3 text-right sm:px-4">
-                      <span
-                        className={`text-sm font-bold tabular-nums ${
-                          player.totalFee > 0
-                            ? "text-red-600 dark:text-red-400"
-                            : "text-muted-foreground"
-                        }`}
-                      >
+                      <span className={`text-sm font-bold tabular-nums ${...}`}>
                         {formatVnd(player.totalFee)}
                       </span>
                     </td>
+                    */}
 
                     <td className="hidden px-4 py-3 text-right md:table-cell">
                       <span className="inline-flex items-center gap-1 text-sm tabular-nums text-muted-foreground">

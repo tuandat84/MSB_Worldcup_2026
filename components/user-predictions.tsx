@@ -7,12 +7,12 @@ import {
   Target,
   Trophy,
   CheckCircle2,
-  Wallet,
+  // Wallet,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TeamFlag } from "@/components/team-flag"
 import { formatKickoffDate } from "@/lib/format-date"
-import { formatVnd } from "@/lib/pool-fee"
+// import { formatVnd } from "@/lib/pool-fee"
 import { POINT_EXACT } from "@/lib/match-scoring"
 
 type UserInfo = {
@@ -25,7 +25,7 @@ type UserInfo = {
   exactScores: number
   scoredMatches: number
   missedMatches: number
-  totalFee: number
+  // totalFee: number
 }
 
 type PredictionItem = {
@@ -40,7 +40,7 @@ type PredictionItem = {
   predictedScoreA: number
   predictedScoreB: number
   points: number | null
-  fee: number
+  // fee: number
   isMissed: boolean
 }
 
@@ -169,19 +169,21 @@ export function UserPredictions({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4 sm:gap-4">
+          <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-3 sm:gap-4">
             <div className="rounded-lg bg-amber-50 px-3 py-2 dark:bg-amber-500/10">
               <p className="text-lg font-bold tabular-nums text-amber-700 dark:text-amber-400">
                 {user.totalPoints}
               </p>
               <p className="text-xs text-muted-foreground">Tổng điểm</p>
             </div>
+            {/*
             <div className="rounded-lg bg-red-50 px-3 py-2 dark:bg-red-500/10">
               <p className="text-lg font-bold tabular-nums text-red-600 dark:text-red-400">
                 {formatVnd(user.totalFee)}
               </p>
               <p className="text-xs text-muted-foreground">Tổng phải đóng</p>
             </div>
+            */}
             <div className="rounded-lg bg-orange-50 px-3 py-2 dark:bg-orange-500/10">
               <p className="text-lg font-bold tabular-nums text-orange-700 dark:text-orange-400">
                 {user.totalPredictions}
@@ -299,27 +301,14 @@ export function UserPredictions({
                       </span>
                     </div>
 
+                    {/*
                     {isFinished && item.fee > 0 && (
-                      <div className="text-center">
-                        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          Mất tiền
-                        </p>
-                        <span className="inline-flex items-center gap-1 rounded-md bg-red-100 px-2.5 py-1 text-sm font-bold tabular-nums text-red-700 dark:bg-red-500/15 dark:text-red-400">
-                          <Wallet className="size-3" />
-                          {formatVnd(item.fee)}
-                        </span>
-                      </div>
+                      <div className="text-center">...</div>
                     )}
                     {isFinished && item.fee === 0 && (
-                      <div className="text-center">
-                        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          Mất tiền
-                        </p>
-                        <span className="inline-block rounded-md bg-emerald-100 px-2.5 py-1 text-sm font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
-                          Miễn phí
-                        </span>
-                      </div>
+                      <div className="text-center">...</div>
                     )}
+                    */}
                   </div>
                 </div>
 
@@ -331,17 +320,17 @@ export function UserPredictions({
                 )}
                 {isFinished && item.points === 1 && (
                   <p className="mt-2 text-xs font-medium text-blue-600 dark:text-blue-400">
-                    Trúng kết quả (thắng/hòa/thua) nhưng lệch tỷ số — nộp {formatVnd(item.fee)}
+                    Trúng kết quả (thắng/hòa/thua) nhưng lệch tỷ số
                   </p>
                 )}
                 {isFinished && item.isMissed && (
                   <p className="mt-2 text-xs font-medium text-red-600 dark:text-red-400">
-                    Không dự đoán trước giờ đá — 0 điểm, nộp {formatVnd(item.fee)}
+                    Không dự đoán trước giờ đá — 0 điểm
                   </p>
                 )}
                 {isFinished && !item.isMissed && item.points === 0 && (
                   <p className="mt-2 text-xs font-medium text-red-600 dark:text-red-400">
-                    Sai cả tính chất lẫn tỷ số — nộp {formatVnd(item.fee)}
+                    Sai cả tính chất lẫn tỷ số
                   </p>
                 )}
               </li>

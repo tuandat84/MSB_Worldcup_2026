@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useEffect, useMemo, useRef } from "react"
-import { ChevronRight, Clock, Wallet, Save, CheckCircle2 } from "lucide-react"
+import { ChevronRight, Clock, Save, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { TeamFlag } from "@/components/team-flag"
 import { formatDateHeader, formatTime, parseKickoff, toVNDateKey } from "@/lib/format-date"
-import { formatVnd } from "@/lib/pool-fee"
+// import { formatVnd } from "@/lib/pool-fee"
 
 type MatchStatus = "upcoming" | "open" | "locked" | "finished"
 
@@ -23,7 +23,7 @@ type Match = {
   predictedScoreB: number | null
   pointsAwarded: number | null
   isMissed: boolean
-  poolFee: number
+  // poolFee: number
 }
 
 const statusConfig: Record<MatchStatus, { label: string; className: string }> = {
@@ -223,17 +223,16 @@ function MatchCard({
               </span>
             )}
 
+            {/*
             {isFinished && match.poolFee > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-md bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700 dark:bg-red-500/15 dark:text-red-400">
-                <Wallet className="size-3" />
+              <span className="inline-flex items-center gap-1 ...">
                 {formatVnd(match.poolFee)}
               </span>
             )}
             {isFinished && match.poolFee === 0 && (hasPrediction || match.isMissed) && (
-              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                Miễn phí
-              </span>
+              <span className="text-[10px] font-semibold text-emerald-600">Miễn phí</span>
             )}
+            */}
           </div>
 
           <TeamFlag team={match.teamB} size="lg" align="left" className="w-full" />

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getUserFromRequest } from "@/lib/auth"
 import { getDb } from "@/lib/db"
 import { syncMatchResults } from "@/lib/match-sync"
-import { calculatePoolFee } from "@/lib/pool-fee"
+// import { calculatePoolFee } from "@/lib/pool-fee"
 
 export async function GET(req: NextRequest) {
   try {
@@ -43,24 +43,20 @@ export async function GET(req: NextRequest) {
       ORDER BY m.kickoff ASC, m.id ASC
     `, [user.id])
 
-    const matchesWithFee = matches.map(
+    const matchesNormalized = matches.map(
       (m: {
-        status: string
-        pointsAwarded: number | null
         isMissed: number
-        predictedScoreA: number | null
-        predictedScoreB: number | null
       }) => ({
         ...m,
         isMissed: m.isMissed === 1,
-        poolFee:
-          m.status === "finished"
-            ? calculatePoolFee(m.pointsAwarded, m.isMissed === 1)
-            : 0,
+        // poolFee:
+        //   m.status === "finished"
+        //     ? calculatePoolFee(m.pointsAwarded, m.isMissed === 1)
+        //     : 0,
       })
     )
 
-    return NextResponse.json({ matches: matchesWithFee })
+    return NextResponse.json({ matches: matchesNormalized })
   } catch (error: any) {
     console.error("Get Matches Error:", error)
     return NextResponse.json(

@@ -1,10 +1,12 @@
-/** Phí quỹ theo kết quả dự đoán (VND) */
+// [TẠM TẮT] Cơ chế quy đổi điểm ra tiền — chỉ giữ tính điểm
+/*
+/** Phí quỹ theo kết quả dự đoán (VND) *\/
 export const FEE_WRONG_BOTH = 10_000 // 0 điểm — sai cả tính chất lẫn tỷ số
 export const FEE_WRONG_ONE = 5_000 // 1 điểm — đúng một trong hai
 export const FEE_NO_PREDICTION = 10_000 // không dự đoán — 0 điểm
 export const FEE_PERFECT = 0 // 3 điểm — đúng tỷ số
 
-/** Tính số tiền phải đóng cho một trận (chỉ áp dụng khi đã có điểm) */
+/** Tính số tiền phải đóng cho một trận (chỉ áp dụng khi đã có điểm) *\/
 export function calculatePoolFee(
   points: number | null | undefined,
   isMissed?: boolean
@@ -19,3 +21,4 @@ export function calculatePoolFee(
 export function formatVnd(amount: number): string {
   return `${amount.toLocaleString("vi-VN")} ₫`
 }
+*/
